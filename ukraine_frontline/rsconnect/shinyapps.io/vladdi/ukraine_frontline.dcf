@@ -5,6 +5,6 @@ account: vladdi
 server: shinyapps.io
 hostUrl: https://api.shinyapps.io/v1
 appId: 3230622
-bundleId: 3990557
+bundleId: 3990984
 url: https://vladdi.shinyapps.io/ukraine_frontline/
-when: 1608008088.66138
+when: 1608016546.21295

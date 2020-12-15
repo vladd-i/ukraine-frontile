@@ -40,33 +40,52 @@ ui <- navbarPage(theme = shinytheme("cosmo"),
                           
                           h3("Project Background and Motivations"),
                           p("For the last 6 years, few topics have been affecting 
-                          the everyday life of Ukrainians as much as the military 
+                          the everyday lives of Ukrainians as much as the military 
                           conflict in the Donbass Region, in the east of the country.
-                          My own family has been personally impacted, as my 
+                          My own family has been personally impacted by it, as my 
                           step-father served in the warzone for 3 years."),
                           p("But most importantly, for over half a decade, the 
                           military conflict continues to shape the everyday lives
-                          of civilians. In this project, I decided to focus on 
-                          people who live in the area along the frontline, 
+                          of civilians. In this project, I focus on the 
+                          people who live directly along the line of confrontation, 
                           analyzing their access to basic services amidst war and
-                          their reliance on local governments for support and 
+                          their reliance on the local government for support and 
                           protection."),
-                          p("I reached out to a number of international humanitarian 
-                          organizations and think tanks that collect data in eastern 
-                          Ukraine. For this project, I decided to use a 14,000-household
-                          dataset which I obtained from the", 
+                          p("To get the relevant data, I reached out to a number 
+                          of international humanitarian organizations and think 
+                          tanks that collect data in eastern Ukraine. I built my
+                          project using the dataset from the", 
                           a("REACH Initiative", 
-                          href = "https://www.reach-initiative.org/where-we-work/ukraine/")),
+                          href = "https://www.reach-initiative.org/where-we-work/ukraine/", 
+                          
+                          # Get rid of extra spaces around the link
+                          
+                          .noWS = c("after")),
+                          ", which surveyed over 14,000 households living along the 
+                          frontline about the demographics, use of and satisfaction
+                          with basic services, trust in local government, and other."),
+                          
+                          p("Though this project already features analysis of some 
+                          significant issues, I am planning to continue expanding it 
+                          throughout the winter. Ultimately, I am hoping to send 
+                          the results of my analysis to a number of humanitarian 
+                          organizations in Ukraine. They can use these data-driven
+                          insights to better inform decision of what areas/sectors
+                          to channel their resources to in order to produce the 
+                          greatest positive impact — thus improving the lives of 
+                          people on the frontline."),
                           p("My code and original datasets are available on my",
-                          a("GitHub", href = "https://github.com/vladd-i/")),
+                          a("GitHub", href = "https://github.com/vladd-i/", 
+                          .noWS = c("after")), "."),
                           
                           h3("About Me"),
-                          p("My name is Vlad, I'm an international student in the 
+                          p("My name is Vlad, and I'm an international student in the 
                           Class of 2023 from Ukraine studying Applied Math & Economics. 
                           You can reach me at vlad_ivanchuk@college.harvard.edu or 
                           connect with me on", 
-                          a("LinkedIn.", 
-                          href = "https://www.linkedin.com/in/vladyslav-ivanchuk/"))
+                          a("LinkedIn", 
+                          href = "https://www.linkedin.com/in/vladyslav-ivanchuk/", 
+                          .noWS = c("after")), ".")
                           )),
                  
                  tabPanel("Demographics",
@@ -80,8 +99,10 @@ ui <- navbarPage(theme = shinytheme("cosmo"),
                                       choices = c(
                                           "Sex" = "b1_hohh_sex",
                                           "Age" = "b2_hohh_age",
-                                          "Education Level" = "b4_hohh_education_level",
-                                          "Monthly Income (Ukrainian hryvnias)" = "b31_hohh_income",
+                                          "Education Level" = 
+                                              "b4_hohh_education_level",
+                                          "Monthly Income (Ukrainian hryvnias)" =
+                                              "b31_hohh_income",
                                           "Number of Children" = "children_sum"
                                       ),
                                       selected = "Age")
@@ -109,17 +130,17 @@ ui <- navbarPage(theme = shinytheme("cosmo"),
                           i.e. to analyze people’s satisfaction with which of 
                           the basic services has the greatest impact on their 
                           trust in local government to take care of its citizens."),
-                          p("The regression analysis illustrates that satisfaction
-                          with certain groups of services has a strong effect on
-                          people's trust in local government to take care of its 
-                          citizens."),
+                          p("This regression analysis illustrates that satisfaction
+                          with only some services has a strong predicting power of 
+                          people's trust in the local government to take care of 
+                          its citizens."),
                           p("For example, an increase in reported satisfaction 
-                          with social support services by one point is predicted
-                          to increase the household's trust in local government
+                          with social support services by one point tends to
+                          increase the household's trust in local government
                           by .15 points, on average."),
                           p("In contrast, satisfaction with financial services or
                           non-food markets seeems not to have a significant
-                          relationship with the household's trust in local government,
+                          correlation with the household's trust in local government,
                           since the 95% confidence interval includes a 0, and so 
                           the effect is uncertain.")
                           ),
@@ -287,55 +308,6 @@ server <- function(input, output) {
                      y = "Probability") +
                 scale_y_continuous(labels = scales::percent_format())
         })
-    
-    # Create a plot to visualize demographics of households in the dataset
-    # by geographic unit (thus setting x coordinate to hromada)
-    
-    # output$plot_hh <- renderPlot({
-    #     p = households %>%
-    #         
-    #         # Omit NAs in hromada names
-    #         
-    #         filter(!is.na(hromada)) %>%
-    #         ggplot(aes(x = hromada,
-    #                    y = .data[[input$indicator_hh]])) +
-    #         geom_jitter(size = 1, alpha = .5) +
-    #         labs(title = "Demographics of Households by Hromada (geographic unit)",
-    #              subtitle = "Each dot represents 1 head of household of 14,000+ in the survey",
-    #              x = "Hromada (geographic unit)",
-    #              caption = "Source: AGORA Initiative") +
-    #         
-    #         # Rotate, move, and resize axes text to avoid overlapping and 
-    #         # improve aesthetics
-    #         
-    #         theme(axis.text.y = element_text(size = 12),
-    #               axis.text.x = element_text(size = 12,
-    #                                          angle = 90, 
-    #                                          hjust=1, 
-    #                                          vjust = 0.5))
-    #     
-    #         # "Sex" = "b1_hohh_sex",
-    #         # "Age" = "b2_hohh_age",
-    #         # "Education Level" = "b4_hohh_education_level",
-    #         # "Monthly Income (Ukrainian hryvnias)" = "b31_hohh_income",
-    #         # "Number of Children" = "children_sum"
-    #     
-    #     # Add y axis labels depending on the inputted demographic indicator and
-    #     # tweak other elements to make graph aesthetically pleasing
-    #     
-    #     if (input$indicator_hh == "b1_hohh_sex")
-    #         p <- p + ylab("Sex")
-    #     if (input$indicator_hh == "b2_hohh_age")
-    #         p <- p + ylab("Age")
-    #     if (input$indicator_hh == "b4_hohh_education_level")
-    #         p <- p + ylab("Highest Education Level Achieved")
-    #     if (input$indicator_hh == "b31_hohh_income")
-    #         p <- p + ylab("Monthly Income (Ukrainian hryvnias)")
-    #     if (input$indicator_hh == "children_sum")
-    #         p <- p + ylab("Number of Children")
-    #     
-    #     p
-    # })
     
     output$plot_hh <- renderPlot({
         p = households %>%
