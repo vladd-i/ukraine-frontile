@@ -1,3 +1,5 @@
+# Load relevant libraries
+
 library(rstanarm)
 library(broom.mixed)
 library(gt)
@@ -8,7 +10,10 @@ library(tidyverse)
 
 households_satisfaction <- read.csv("data/households_satisfaction.csv")
   
-# Impute 0 ("Indifferent") for missing satisfaction levels
+# Alter the dataset before using it to fit a model
+
+# Impute 0 ("Indifferent") for missing satisfaction levels (reasoning behind
+# this choice is explained in the "Discussion" page of the Shiny app)
 
 households_satisfaction_imputed <- households_satisfaction
 
@@ -35,7 +40,3 @@ gt_tbl <- fit_government_trust %>%
              subtitle = "The effects of satisfaction with key services on the level
              of trust in local government to take care of its citizens") %>%
   tab_source_note(md("Source: AGORA Initiative"))
-
-
-
-

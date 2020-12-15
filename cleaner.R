@@ -1,3 +1,5 @@
+# Load relevant libraries
+
 library(readxl)
 library(tidyverse)
 
@@ -8,26 +10,24 @@ households <- read_excel("raw_data/UKR1904_R2_HCVA_HH.xlsx",
 community_informants <- read_excel("raw_data/UKR1904_R2_HCVA_KI.xlsx", 
                                    sheet = "data")
 
-
 # Create a dataset with services satisfaction variables as predictors and trust
 # in government as an outcome
 
-# Create lists of relevant variables to be able to iterate over them later
+# Create a list of relevant variables to be able to iterate over them later
 
 satisfaction_vars <- 
   c("f5_satisfaction_health", "d6_satisfaction_transport", "g4_satisfaction_admin", 
     "h2_satisfaction_social", "i2_fin_services_satisf", "j1_food_markets_satisf", 
     "j3_nfi_markets_satisf")
   
-demographics_vars <- c("a2_sex", "a3_age")
-
-# ^ might want to add more demographics variables, such as education level, 
-# income level using one hot encoding (dummy variables)
-
 # Select relevant variables
 
 households_satisfaction <- households %>% 
   select(b44_1_trust_government, all_of(satisfaction_vars)) %>%
+  
+  # Eliminate observations with non-response, where people either did not report
+  # or refused to report their trust in local government
+  
   filter(!is.na(b44_1_trust_government), b44_1_trust_government != "refuse")
 
 # Convert categorical satisfaction/trust responses to a numeric scale (-2 to +2)
@@ -113,32 +113,12 @@ households_satisfaction <- households_satisfaction %>%
   
   select(trust_government:non_food_markets_satisfaction)
 
+# ^ I would like to shorten this code and do it in a loop, but I have not 
+# been able to figure out a way to create a properly functioning loop that would
+# iterate over variables and convert responses to a numeric scale in R
 
 # Write  datasets into csv
 
 write.csv(households, "ukraine_frontline/data/households.csv")
 write.csv(households_satisfaction, "ukraine_frontline/data/households_satisfaction.csv")
 write.csv(community_informants, "ukraine_frontline/data/community_informants.csv")
-
-
-
-# Aggregate the households dataset by hromada and save as a new dataset
-
-# households_aggregated <- households %>%
-#   filter(hromada != "NA") %>%
-#   group_by(hromada)
-
-
-
-
-# 
-# summarize(n_households = n(),
-#           hohh_employment_status.full_time = mean(b5_hohh_employment_status.full_time),
-#           .groups = "drop") 
-# 
-# var_name <- satisfaction_vars[1]
-# 
-# for (i in 1:length(satisfaction_vars)){
-#   households_satisfaction <<- households_satisfaction %>%
-#     get(satisfaction_vars[i])
-# }

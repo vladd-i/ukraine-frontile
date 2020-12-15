@@ -1,3 +1,5 @@
+# Load relevant libraries
+
 library(shiny)
 library(tidyverse)
 library(ggforce)
@@ -7,7 +9,7 @@ library(shinythemes)
 # Read in data
 
 households <- read.csv("data/households.csv")
-householsd_satisfaction <- read.csv("data/households_satisfaction.csv")
+households_satisfaction <- read.csv("data/households_satisfaction.csv")
 
 # Use objects from other R Script
 
@@ -18,13 +20,20 @@ source("graphics.R")
 
 ggplot2::theme_set(ggplot2::theme_minimal(base_size = 13))
 
-# Define UI for application
+# Define UI for application, setting a custom theme and defining a layout with
+# fluidRow() and column() functions
 
 ui <- navbarPage(theme = shinytheme("cosmo"),
+                 
+                 # Short project title
+                 
                  "Life on the Frontline",
                  
                  tabPanel("About", 
                           column(8,
+                                 
+                          # Full project name
+                          
                           titlePanel("Life on the Frontline: People's Access to 
                                      Services Amidst an Armed Conflict in Eastern 
                                      Ukraine"),
@@ -32,7 +41,7 @@ ui <- navbarPage(theme = shinytheme("cosmo"),
                           h3("Project Background and Motivations"),
                           p("For the last 6 years, few topics have been affecting 
                           the everyday life of Ukrainians as much as the military 
-                          conflict in the Donbass Region, in the East of the country.
+                          conflict in the Donbass Region, in the east of the country.
                           My own family has been personally impacted, as my 
                           step-father served in the warzone for 3 years."),
                           p("But most importantly, for over half a decade, the 
@@ -43,10 +52,10 @@ ui <- navbarPage(theme = shinytheme("cosmo"),
                           their reliance on local governments for support and 
                           protection."),
                           p("I reached out to a number of international humanitarian 
-                          organizations and think tanks that collect data in Eastern 
-                          Ukraine. Eventually, for this project I decided to use 
-                          datasets obtained from", 
-                          a("the REACH Initiative", 
+                          organizations and think tanks that collect data in eastern 
+                          Ukraine. For this project, I decided to use a 14,000-household
+                          dataset which I obtained from the", 
+                          a("REACH Initiative", 
                           href = "https://www.reach-initiative.org/where-we-work/ukraine/")),
                           p("My code and original datasets are available on my",
                           a("GitHub", href = "https://github.com/vladd-i/")),
@@ -60,10 +69,38 @@ ui <- navbarPage(theme = shinytheme("cosmo"),
                           href = "https://www.linkedin.com/in/vladyslav-ivanchuk/"))
                           )),
                  
-                 tabPanel("Model",
+                 tabPanel("Demographics",
+                          sidebarLayout(
+                          sidebarPanel(
+                          # Setting up a drop down menu to select which
+                          # demographic indicator of households to display
+                              
+                          selectInput("indicator_hh", 
+                                      "Select a demographic indicator:", 
+                                      choices = c(
+                                          "Sex" = "b1_hohh_sex",
+                                          "Age" = "b2_hohh_age",
+                                          "Education Level" = "b4_hohh_education_level",
+                                          "Monthly Income (Ukrainian hryvnias)" = "b31_hohh_income",
+                                          "Number of Children" = "children_sum"
+                                      ),
+                                      selected = "Age")
+                          ),
+                          
+                          mainPanel(
+                              
+                          # Show a graph that visualizes household
+                          # demographic indicators by a geographic unit, 
+                          # allowing for comparison across different location
+                         
+                          plotOutput("plot_hh", height = 500)
+                          ))
+                          ),
+                 
+                 tabPanel("Trust in Government",
                           fluidRow(
                           column(5,
-                          h2("Regression of Trust in Local Government"),
+                          titlePanel("Regression of Trust in Local Government"),
                           p("I decided to build a Bayesian multiple linear 
                           regression model using trust in local government as a 
                           response variable, and levels of satisfaction with basic 
@@ -95,10 +132,13 @@ ui <- navbarPage(theme = shinytheme("cosmo"),
                           
                           sidebarLayout(
                           sidebarPanel(
-                          h3("Select Posteriors to Display:"),
+                          
+                          # Create a group of checkboxes so that viewer can 
+                          # choose which posteriors to display on the graphic
+                          
                           checkboxGroupInput(
                               "posteriors",
-                              label = NULL,
+                              label = "Select posteriors to display:",
                               choices = list("Social services" = "social",
                                              "Administrative services" = "admin",
                                              "Health services" = "health",
@@ -106,32 +146,21 @@ ui <- navbarPage(theme = shinytheme("cosmo"),
                                              "Food markets" = "food_markets",
                                              "Financial services" = "financial",
                                              "Non-food markets" = "non_food_markets"),
+                              
+                              # Default to selecting these 4 posteriors, since
+                              # they are pretty spaced out on the graphic and 
+                              # create an informative first impression of the range
+                              # of the values
+                              
                               selected = c("health", "food_markets",
                                            "financial", "non_food_markets"))
-                          
-                          # radioButtons("graphic", h3("Radio buttons"),
-                          #              choices = list("Density Curve" = 1,
-                          #                             "Histogram" = 2),
-                          #              selected = 1)
                           ),
-                          
+
+                          # Show the plot with posteriors from the model
                           
                           mainPanel(
                           plotOutput(outputId = "posteriors_plot")
                           ))),
-                 
-                 tabPanel("Data",
-                          fluidPage(
-                              
-                              # Application title
-                              titlePanel("Household Data by Hromada (geographic unit)"),
-                              
-                              # setting up drop downs
-                              selectInput("indicator_hh", "Indicator", 
-                                          choices = names(households)),
-                              plotOutput("plot_hh")
-                              
-                          )),
                  
                  tabPanel("Discussion",
                           titlePanel("Model Choices"),
@@ -184,6 +213,11 @@ ui <- navbarPage(theme = shinytheme("cosmo"),
                           and reported various satisfaction/dissatisfaction levels")
                           ),
                           
+                          # Display a plot that illustrates what percentage
+                          # of households used & reported their trust in certain
+                          # categories of services to back up the explanation of 
+                          # the choices I made to build a model
+                          
                           column(5,
                           plotOutput(outputId = "services_proportion_plot")
                           )))
@@ -195,34 +229,47 @@ ui <- navbarPage(theme = shinytheme("cosmo"),
 
 server <- function(input, output) {
     
+    # Pull a regression summary table with the coefficient values from a 
+    # model.R script
+    
     output$regression_table <- 
         render_gt(
             expr = gt_tbl
         )
+    
+    # Pull a graphic with the levels of use of services by households from a 
+    # graphics.R script
     
     output$services_proportion_plot <- 
         renderPlot(
             expr = services_proportion_plot
         )
     
+    # Create a plot of posteriors using the tibble from graphics.R script
+    
     output$posteriors_plot <-
         renderPlot({
             posteriors_tibble %>%
+                
+                # Select only the posteriors that the user chose in the checkboxes
+                
                 filter(parameter %in% c(input$posteriors)) %>%
                 ggplot(aes(value, fill = parameter)) +
                 
-                # Alternative appearance — set of histograms:
+                # Create a set of corresponding histograms for each predictor:
                 
                 geom_histogram(aes(y = after_stat(count/sum(count))),
                                alpha = 0.7,
                                bins = 515,
                                position = "identity") +
                 
-                # Density curves create a less crowded graphic than histograms:
+                # Overlay with density curves for aesthetics:
                 
                 geom_density(aes(y = after_stat(count/sum(count))),
                              alpha = .8) +
     
+                # Set custom colors for aesthetics
+                
                 scale_fill_manual(breaks = c("social", "admin", "health", 
                                              "transport", "food_markets", 
                                              "financial", "non_food_markets"),
@@ -241,23 +288,180 @@ server <- function(input, output) {
                 scale_y_continuous(labels = scales::percent_format())
         })
     
-    plot_geom <- reactive({
-        switch(input$geom,
-               point = geom_point(),
-               smooth = geom_smooth(se = TRUE, na.rm = TRUE),
-               column = geom_col(),
-               jitter = geom_jitter()
-        )
-    })
+    # Create a plot to visualize demographics of households in the dataset
+    # by geographic unit (thus setting x coordinate to hromada)
+    
+    # output$plot_hh <- renderPlot({
+    #     p = households %>%
+    #         
+    #         # Omit NAs in hromada names
+    #         
+    #         filter(!is.na(hromada)) %>%
+    #         ggplot(aes(x = hromada,
+    #                    y = .data[[input$indicator_hh]])) +
+    #         geom_jitter(size = 1, alpha = .5) +
+    #         labs(title = "Demographics of Households by Hromada (geographic unit)",
+    #              subtitle = "Each dot represents 1 head of household of 14,000+ in the survey",
+    #              x = "Hromada (geographic unit)",
+    #              caption = "Source: AGORA Initiative") +
+    #         
+    #         # Rotate, move, and resize axes text to avoid overlapping and 
+    #         # improve aesthetics
+    #         
+    #         theme(axis.text.y = element_text(size = 12),
+    #               axis.text.x = element_text(size = 12,
+    #                                          angle = 90, 
+    #                                          hjust=1, 
+    #                                          vjust = 0.5))
+    #     
+    #         # "Sex" = "b1_hohh_sex",
+    #         # "Age" = "b2_hohh_age",
+    #         # "Education Level" = "b4_hohh_education_level",
+    #         # "Monthly Income (Ukrainian hryvnias)" = "b31_hohh_income",
+    #         # "Number of Children" = "children_sum"
+    #     
+    #     # Add y axis labels depending on the inputted demographic indicator and
+    #     # tweak other elements to make graph aesthetically pleasing
+    #     
+    #     if (input$indicator_hh == "b1_hohh_sex")
+    #         p <- p + ylab("Sex")
+    #     if (input$indicator_hh == "b2_hohh_age")
+    #         p <- p + ylab("Age")
+    #     if (input$indicator_hh == "b4_hohh_education_level")
+    #         p <- p + ylab("Highest Education Level Achieved")
+    #     if (input$indicator_hh == "b31_hohh_income")
+    #         p <- p + ylab("Monthly Income (Ukrainian hryvnias)")
+    #     if (input$indicator_hh == "children_sum")
+    #         p <- p + ylab("Number of Children")
+    #     
+    #     p
+    # })
     
     output$plot_hh <- renderPlot({
-        ggplot(households, aes(hromada, .data[[input$indicator_hh]])) +
-            geom_jitter()
+        p = households %>%
+            
+            # Omit NAs in hromada names
+            # Also omit a household that didn't report the age to avoid 
+            # an error message
+            
+            filter(!is.na(hromada), !is.na(b2_hohh_age)) %>%
+            
+            # Set the y aesthetic later depending on the indicator selected to 
+            # ensure proper formatting
+            
+            ggplot(aes(x = hromada)) +
+            labs(title = "Demographics of Households by Hromada (geographic unit)",
+                 subtitle = "Each dot represents 1 head of household of 14,000+ in the survey",
+                 x = "Hromada (geographic unit)",
+                 caption = "Source: AGORA Initiative") +
+            
+            # Rotate, move, and resize axes text to avoid overlapping and 
+            # improve aesthetics
+            
+            theme(axis.text.y = element_text(size = 12),
+                  axis.text.x = element_text(size = 12,
+                                             angle = 90, 
+                                             hjust = 1, 
+                                             vjust = 0.5))
+        
+        # Add y axis labels and tweak other elements depending on the inputted 
+        # demographic indicator to make graph aesthetically pleasing
+        
+        if (input$indicator_hh == "b1_hohh_sex")
+            p <- p + 
+                geom_jitter(aes(y = b1_hohh_sex), 
+                            size = 1, 
+                            alpha = .5) +
+                ylab("Sex")
+        
+        if (input$indicator_hh == "b2_hohh_age")
+            p <- p + 
+                geom_jitter(aes(y = b2_hohh_age), 
+                            size = 1, 
+                            alpha = .5,
+                            color = "#e86913") +
+                ylab("Age")
+        
+        if (input$indicator_hh == "b4_hohh_education_level"){
+            
+            # Set correct order of education levels
+            
+            level_order <- c("none", 
+                            "preschool",
+                            "primary_education",
+                            "basic_secondary",
+                            "complete_secondary",
+                            "vocational",
+                            "basic_higher",
+                            "complete_higher",
+                            "postgraduate")
+            p <- p + 
+                geom_jitter(aes(y = factor(b4_hohh_education_level,
+                                           level = level_order)), 
+                            size = .5, 
+                            alpha = .2,
+                            color = "#1e6ec9") +
+                
+                # Rename and reorder y ticks to make them more aesthetically pleasing
+                
+                scale_y_discrete(breaks = level_order,
+                                 labels = c("None", 
+                                           "Preschool",
+                                           "Primary",
+                                           "Basic Secondary",
+                                           "Complete Secondary",
+                                           "Vocational",
+                                           "Basic Higher",
+                                           "Complete Higher",
+                                           "Postgraduate")) +
+                ylab("Highest Education Level Achieved")
+        }
+            
+        if (input$indicator_hh == "b31_hohh_income"){
+            
+            # Set correct order of income levels
+            
+            level_order <- c("0",
+                             "less_2000",
+                             "less_4000",
+                             "2001_4000",
+                             "4001_8000",
+                             "8001_12000",
+                             "more_12001")
+            
+            p <- p + 
+                geom_jitter(aes(y = factor(b31_hohh_income,
+                                           level = level_order)), 
+                            size = .5, 
+                            alpha = .2,
+                            color = "#28820c") +
+                
+                # Rename and reorder y ticks to make them more aesthetically pleasing
+                
+                scale_y_discrete(breaks = level_order,
+                                 labels = c("0", 
+                                            "<2000",
+                                            "<4000",
+                                            "2,000-4,000",
+                                            "4,000-8,000",
+                                            "8,000-12,000",
+                                            ">12,000")) +
+            
+                ylab("Monthly Income (Ukrainian hryvnias)")
+        }
+            
+        if (input$indicator_hh == "children_sum")
+            p <- p + 
+                geom_jitter(aes(y = as.factor(children_sum)), 
+                            size = .5, 
+                            alpha = .2,
+                            color = "#9a53bb") +
+                ylab("Number of Children")
+        
+        p
     })
 }
 
 
 # Run the application 
 shinyApp(ui, server)
-
-
