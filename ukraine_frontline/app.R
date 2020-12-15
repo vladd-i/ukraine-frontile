@@ -431,7 +431,7 @@ server <- function(input, output) {
                 ylab("Number of Children")
         
         p
-    })
+    }) 
 }
 
 

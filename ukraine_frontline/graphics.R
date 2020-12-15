@@ -89,4 +89,4 @@ posteriors_tibble <- fit_government_trust %>%
   select(health:non_food_markets) %>%
   pivot_longer(cols = health:non_food_markets,
                names_to = "parameter",
-               values_to = "value")
+               values_to = "value") 
